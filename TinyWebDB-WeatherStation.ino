@@ -77,7 +77,8 @@ void setup() {
     if(!wifiManager.autoConnect()) {
       Serial.println("failed to connect and hit timeout");
       //reset and try again, or maybe put it to deep sleep
-      ESP.reset();
+      // ESP.reset();
+      ESP.deepSleep(300 * 1000 * 1000 , WAKE_RF_DEFAULT);
       delay(1000);
     } 
   
