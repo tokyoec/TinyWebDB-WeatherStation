@@ -29,10 +29,11 @@ Adafruit_BMP280 bmp; // I2C
 #define USE_SERIAL Serial
 #define ledPin D6
 //#define ledPin BUILTIN_LED
+#define VER    "3.0.0"
 
 WiFiClient client;
 
-const char* resource = "http://webdb.cf/api/";           // http resource
+const char* resource = "http://weather.uc4.net/";           // http resource
 const unsigned long BAUD_RATE = 9600;      // serial connection speed
 const unsigned long HTTP_TIMEOUT = 10000;  // max respone time from server
 const size_t MAX_CONTENT_SIZE = 512;       // max size of the HTTP response
@@ -52,7 +53,7 @@ void setup() {
     pinMode(ledPin, OUTPUT);
     digitalWrite(ledPin, HIGH);
 
-    USE_SERIAL.begin(115200);
+    USE_SERIAL.begin(BAUD_RATE);
    // USE_SERIAL.setDebugOutput(true);
 
     USE_SERIAL.println();
@@ -78,7 +79,7 @@ void setup() {
       Serial.println("failed to connect and hit timeout");
       //reset and try again, or maybe put it to deep sleep
       // ESP.reset();
-      ESP.deepSleep(300 * 1000 * 1000 , WAKE_RF_DEFAULT);
+      ESP.deepSleep(30 * 1000 * 1000 , WAKE_RF_DEFAULT);
       delay(1000);
     } 
   
@@ -93,7 +94,7 @@ void setup() {
       while (1) {}
     }
 
-    while (0 == time(nullptr)) {
+    while (1500000000 > time(nullptr)) {
       delay(10);   // waiting time settle
     };
 }
@@ -138,10 +139,11 @@ void sensor_TinyWebDB(const char* tag) {
     float pressure = bmp.readPressure() / 100;
     float temperature = bmp.readTemperature();
 
-    const size_t bufferSize = JSON_ARRAY_SIZE(4) + JSON_OBJECT_SIZE(5);
+    const size_t bufferSize = JSON_ARRAY_SIZE(4) + JSON_OBJECT_SIZE(7);
     DynamicJsonBuffer jsonBuffer(bufferSize);
     
     JsonObject& root = jsonBuffer.createObject();
+    root["Ver"] = VER;
     root["sensor"] = "bmp280";
     root["localIP"] = WiFi.localIP().toString();
     root["temperature"] = String(temperature);
@@ -149,12 +151,7 @@ void sensor_TinyWebDB(const char* tag) {
     root["battery_Vcc"] = String(analogRead(A0) * (4.2 / 1023.0)); 
 
     time_t now = time(nullptr);
-    struct tm *tm;    
-    tm = localtime(&now);
-    sprintf(buff, "%02d/%02d/%02d %02d:%02d:%02d",
-        tm->tm_year+1900, tm->tm_mon+1, tm->tm_mday,
-        tm->tm_hour, tm->tm_min, tm->tm_sec);            
-    root["localTime"] = String(buff);
+    root["localTime"] = String(now);
 
     root.printTo(value);
     USE_SERIAL.printf("[TinyWebDB] %s\n", value);
