@@ -33,7 +33,7 @@ Adafruit_BMP280 bmp; // I2C
 
 WiFiClient client;
 
-const char* resource = "http://weather.uc4.net/";           // http resource
+const char* resource = "http://sensor.db.uc4.net/";           // http resource
 const unsigned long BAUD_RATE = 9600;      // serial connection speed
 const unsigned long HTTP_TIMEOUT = 10000;  // max respone time from server
 const size_t MAX_CONTENT_SIZE = 512;       // max size of the HTTP response
@@ -218,7 +218,7 @@ int TinyWebDBGetValue(const char* tag)
 {
     char url[64];
 
-    sprintf(url, "%s%s?tag=%s", resource, "getvalue/", tag);
+    sprintf(url, "%s%s?tag=%s", resource, "getvalue", tag);
 
     USE_SERIAL.printf("[HTTP] %s\n", url);
     // configure targed server and url
